@@ -1,12 +1,16 @@
 import './style.css'
 
 const input = document.querySelector("#todoInput")
+const dueDateInput = document.querySelector('#dueDateInput')
 const addBtn = document.querySelector("#addBtn")
 const listEl = document.querySelector("#todoList")
 const countText = document.querySelector("#countText")
 const clearCompletedBtn = document.querySelector("#clearCompletedBtn")
+const allViewBtn = document.querySelector("#allViewBtn")
+const dateViewBtn = document.querySelector("#dateViewBtn")
 
 let todos = loadTodos();
+let currentView = "all";
 
 function saveTodos() {
     localStorage.setItem("todos", JSON.stringify(todos))
@@ -33,72 +37,176 @@ function updateCount() {
     countText.textContent = `${total} items, ${done} done`;
 }
 
+function formatDate(dateStr) {
+    if (!dateStr) return "NO DDL";
+    return dateStr;
+}
 
-// 在静态HTML里，我们只能写出固定的结构，比如一个空的列表容器，而动态数据（来自js数组todos）需要在程序运行时根据数据动态生成对应的HTML元素
-function render() {
-// render函数执行时，它会：1.清空列表，2.循环遍历todos数组，为每个待办事项创建DOM元素
-// 3. 为这些元素添加事件监视器， 4. 将元素添加到DOM中， 5.更新计数
-    listEl.innerHTML = ""; //每次渲染前清空列表容器
+function getDateLabel(dateStr) {
+    if (!dateStr) return "NO DDL";
+    return dateStr;
+}
+
+function renderAllTodos() {
+    listEl.innerHTML = "";
+
+    if (todos.length === 0) {
+        listEl.innerHTML = `<li class="empty">No tasks yet.</li>`;
+        updateCount();
+        return;
+    }
 
     for (const todo of todos) {
-        const li = document.createElement("li")  //DOM元素创建，相当于<li></li>，但是不添加到页面
+        const li = document.createElement("li");
         li.className = "item" + (todo.done ? " done" : "");
-        //如果todo.done为true，添加done类：<li class="item done"></li>
-        //如果todo.done为false，只有"item"类：<li class="item"></li>
-        //这样CSS可以通过.item.done选择器设置已经完成事项的样式
 
-        const checkbox = document.createElement("input"); //创建复选框input元素
-        checkbox.type = "checkbox"; //设置复选框类型为checkbox
-        checkbox.checked = todo.done; //根据todo.done设置复选框是否被选中
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todo.done;
 
-        checkbox.addEventListener("change",()=>{
-            // 这个函数不会立即执行，它被注册为事件监视器，只有当复选框状态改变时才会执行
+        checkbox.addEventListener("change", () => {
             todo.done = checkbox.checked;
             saveTodos();
-            render(); //在事件回调中调用，不是在render内部直接调用
+            render();
         });
 
-        const span = document.createElement("span"); //创建显示todo标题的span元素
-        span.className = "title"; //设置span的类名为title
-        span.textContent = todo.title; //设置span的文本内容为todo的标题
+        const main = document.createElement("div");
+        main.className = "item-main";
 
-        const delBtn = document.createElement("button"); //创建删除按钮
-        delBtn.className = "del"
+        const span = document.createElement("span");
+        span.className = "title";
+        span.textContent = todo.title;
+
+        const meta = document.createElement("span");
+        meta.className = "item-meta";
+        meta.textContent = `DDL: ${formatDate(todo.dueDate)}`;
+
+        main.appendChild(span);
+        main.appendChild(meta);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "del";
         delBtn.textContent = "delete";
-        delBtn.addEventListener("click", ()=> {
+        delBtn.addEventListener("click", () => {
             todos = todos.filter((t) => t.id !== todo.id);
             saveTodos();
             render();
         });
-        
-        //将复选框，标题，删除按钮添加到li元素中
+
         li.appendChild(checkbox);
-        li.appendChild(span);
+        li.appendChild(main);
         li.appendChild(delBtn);
-        //组装成类似于这样的格式：
-        //<li class="item done">
-        //  <input type="checkbox" checked>
-        //  <span class="title"> 学习前端</span>
-        //  <button class="del">删除</button>
-        //</li>
 
         listEl.appendChild(li);
-
     }
 
     updateCount();
-
 }
 
-// 时间点1：页面加载
-// 调用render()，创建DOM元素，绑定事件监视器（函数被注册，但未调用，render()结束)
-// 时间点2：用户点击复选框
-// 浏览器触发change事件，调用之前注册的事件监听器函数，在这个函数内部：修改todo.done，保存到localStorage，调用render()
-// 时间点3：第二次render()执行
-// 清空列表，重新创建DOM元素，绑定新的事件监视器，render()结束
+
+function groupPendingTodosByDate() {
+    const groups = {};
+
+    for (const todo of todos) {
+        if (todo.done) continue;
+
+        const key = todo.dueDate || "No DDL";
+
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+
+        groups[key].push(todo);
+    }
+
+    return groups;
+}
+
+function renderTodosByDate() {
+    listEl.innerHTML = "";
+
+    const groups = groupPendingTodosByDate();
+    const keys = Object.keys(groups);
+
+    if (keys.length === 0) {
+        listEl.innerHTML = `<li class="empty">No pending tasks.</li>`;
+        updateCount();
+        return;
+    }
+
+    keys.sort((a, b) => {
+        if (a === "No DDL") return 1;
+        if (b === "No DDL") return -1;
+        return a.localeCompare(b);
+    });
+
+    for (const key of keys) {
+        const titleLi = document.createElement("li");
+        titleLi.className = "group-title";
+        titleLi.textContent = getDateLabel(key);
+        listEl.appendChild(titleLi);
+
+        for (const todo of groups[key]) {
+            const li = document.createElement("li");
+            li.className = "item";
+
+            const main = document.createElement("div");
+            main.className = "item-main";
+
+            const span = document.createElement("span");
+            span.className = "title";
+            span.textContent = todo.title;
+
+            const meta = document.createElement("span");
+            meta.className = "item-meta";
+            meta.textContent = `DDL: ${formatDate(todo.dueDate)}`;
+
+            main.appendChild(span);
+            main.appendChild(meta);
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = todo.done;
+
+            checkbox.addEventListener("change", () => {
+                todo.done = checkbox.checked;
+                saveTodos();
+                render();
+            });
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "del";
+            delBtn.textContent = "delete";
+            delBtn.addEventListener("click", () => {
+                todos = todos.filter((t) => t.id !== todo.id);
+                saveTodos();
+                render();
+            });
+
+            li.appendChild(checkbox);
+            li.appendChild(main);
+            li.appendChild(delBtn);
+
+            listEl.appendChild(li);
+        }
+    }
+
+    updateCount();
+}
+
+
+function render() {
+    if (currentView === "all") {
+        renderAllTodos();
+    } else {
+        renderTodosByDate();
+    }
+}
 
 function addTodo() {
     const title = input.value.trim();
+    const dueDate = dueDateInput.value;
+
     if (title === "") return ;
 
     todos.unshift({
@@ -106,9 +214,11 @@ function addTodo() {
         id:Date.now(),
         title,
         done:false,
+        dueDate: dueDate || "",
     });
 
     input.value = "";
+    dueDateInput.value = "";
     saveTodos();
     render();
 }
@@ -129,5 +239,14 @@ clearCompletedBtn.addEventListener("click", () => {
     render();
 });
 
+allViewBtn.addEventListener("click", () => {
+    currentView = "all";
+    render();
+});
+
+dateViewBtn.addEventListener("click", () => {
+    currentView = "date";
+    render();
+});
 //首次渲染
 render();
