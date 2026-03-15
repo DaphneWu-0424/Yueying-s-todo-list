@@ -12,7 +12,8 @@ body {
   padding: 16px;
   border: 1px solid #ddd;
   border-radius: 12px;
-  max-width: 520px;
+  width: 100%;
+  max-width: 900px;
 }
 
 .row {
