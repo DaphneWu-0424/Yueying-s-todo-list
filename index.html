@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title> TODO List</title>
+        
+    </head>
+    <body>
+        <h1>✅ TODO List</h1>
+        <div class="card">
+            <div class="row">
+                <input id="todoInput" class="input" placeholder="Enter a task, then press the enter key / click add." />
+                <button id="addBtn" class="btn">
+                    add
+                </button>
+            </div>
+
+            <div class="meta">
+                <span id="countText">
+                    <!-- span可以理解为是行内文本容器,div是块级容器 -->
+                    0 items
+                </span>
+                <button id="clearCompletedBtn" class="btn ghost">
+                    cleared!
+                </button>
+            </div>
+
+            <ul id="todoList" class="list"></ul>
+            <!-- ul是ubordered list无序列表的缩写，列表中的每个项目用li标签表示 -->
+             <!-- 初始HTML只有一个空容器，JS会在这里动态添加.item -->
+        </div>
+
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>

@@ -1,0 +1,91 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding: 24px;
+}
+
+.card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  max-width: 520px;
+}
+
+.row {
+  display: flex;
+  /* 将元素转变为弹性容器，其所有直接子元素自动成为弹性项目 */
+  gap: 10px;
+  /* 设置弹性项目之间的间距，传统方式每个项目都要设置margin */
+}
+
+.input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.btn {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  /* cursor的作用是改变鼠标悬停在元素上的光标样式，pointer代表手形光标 */
+  background: white;
+}
+
+.btn.ghost {
+  background: transparent;
+  /* 幽灵按钮，背景透明，显示父元素的背景 */
+}
+
+.meta {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #555;
+  font-size: 14px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+
+.item:first-child {
+  border-top: none;
+  /* 第一个项目没有上边框 */
+}
+
+.item .title {
+  flex: 1;
+}
+
+.item.done .title {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.del {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: white;
+  cursor: pointer;
+}
