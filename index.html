@@ -40,6 +40,16 @@
             <!-- 初始HTML只有一个空容器，JS会在这里动态添加.item -->
         </div>
 
+        <div id="reminderModal" class="modal hidden">
+            <div class="modal-panel">
+                <h2>Reminder!</h2>
+                <ul id="reminderList" class="reminder-list"></ul>
+                <div class="modal-actions">
+                  <button id="reminderCloseBtn" class="btn">Got it</button>
+                </div>
+            </div>
+        </div>
+
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>
