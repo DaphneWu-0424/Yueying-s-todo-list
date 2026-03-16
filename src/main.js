@@ -334,7 +334,7 @@ render();
 checkReminders();
 //showReminderModal([{ title: "test task", dueDate: "2026-03-16" }]);
 
-// 每分钟检查一次
+// 每秒检查一次
 setInterval(checkReminders, 1000);
 
 // 页面从后台切回前台时再检查一次
