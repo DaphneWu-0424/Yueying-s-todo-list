@@ -61,6 +61,7 @@ body {
 }
 
 .item {
+  /* 所有.item元素自身 */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -70,15 +71,18 @@ body {
 }
 
 .item:first-child {
+  /* 作为第一个子元素的.item元素 */
   border-top: none;
   /* 第一个项目没有上边框 */
 }
 
 .item .title {
+  /* 匹配所有.item元素内部的.title元素，无论嵌套多深 */
   flex: 1;
 }
 
 .item.done .title {
+  /* 组合了类选择器和后代选择器，先匹配同时拥有item和done两个类的元素，即class="item done" */
   text-decoration: line-through;
   color: #888;
 }

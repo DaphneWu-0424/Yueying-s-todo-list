@@ -13,6 +13,8 @@
                 <input id="todoInput" class="input" placeholder="Enter a task, then press the enter key / click add." />
                 <!-- placeholder是占位符在用户输入前显示灰色提示文字 -->
                 <input id="dueDateInput" class="input" type="date" />
+                <!-- type=data会渲染为浏览器自带的日期选择器 -->
+                <!-- <input>是一个空元素（没有结束标签，它根据type属性的值呈现为不同的控件 -->
                 <button id="addBtn" class="btn">
                     add
                 </button>
@@ -35,7 +37,7 @@
 
             <ul id="todoList" class="list"></ul>
             <!-- ul是ubordered list无序列表的缩写，列表中的每个项目用li标签表示 -->
-             <!-- 初始HTML只有一个空容器，JS会在这里动态添加.item -->
+            <!-- 初始HTML只有一个空容器，JS会在这里动态添加.item -->
         </div>
 
         <script type="module" src="/src/main.js"></script>
