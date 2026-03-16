@@ -10,6 +10,9 @@ const countText = document.querySelector("#countText")
 const clearCompletedBtn = document.querySelector("#clearCompletedBtn")
 const allViewBtn = document.querySelector("#allViewBtn")
 const dateViewBtn = document.querySelector("#dateViewBtn")
+const reminderModal = document.querySelector("#reminderModal");
+const reminderList = document.querySelector("#reminderList");
+const reminderCloseBtn = document.querySelector("#reminderCloseBtn");
 
 let todos = loadTodos();
 let currentView = "all";
@@ -30,6 +33,46 @@ function loadTodos() {
     } catch {
         return []
     }
+}
+
+function getDefaultRemindAt(dueDate) {
+    if (!dueDate) return 0;
+
+    //假设提醒日期为当天的23：00
+    //const date = new Date(`${dueDate}T23:00:00`);
+
+    //再往前推一天，也就是头天晚上11点进行提醒
+    //date.setDate(date.getDate() - 1);
+
+    return Date.now() + 5000;
+}
+
+
+function isReminderDue(todo) {
+    if (todo.done) return false;
+    if (!todo.dueDate) return false;
+    if (!todo.remindAt) return false;
+    if (todo.reminded) return false;//如果已经提醒过
+
+    return todo.remindAt <= Date.now();
+    // 如果提醒时间小于等于当前时间，说明提醒时间已到或已过，返回 true（需要提醒）；否则返回 false（提醒时间在未来）
+}
+
+
+function showReminderModal(reminderTodos) {
+    reminderList.innerHTML = '';
+
+    for (const todo of reminderTodos) {
+        const li = document.createElement("li");
+        li.textContent = `${todo.title}(DDL: ${todo.dueDate})`;
+        reminderList.appendChild(li);
+    }
+
+    reminderModal.classList.remove("hidden"); //将不用隐藏
+}
+
+function hideReminderModal() {
+    reminderModal.classList.add("hidden");
 }
 
 function updateCount() {
@@ -210,6 +253,22 @@ function renderTodosByDate() {
 }
 
 
+function checkReminders() {
+    // 找出所有“该提醒了但还没提醒”的任务
+    const dueTodos = todos.filter(isReminderDue);
+
+    if (dueTodos.length === 0) return;
+
+    showReminderModal(dueTodos); //将这些任务从hidden变为显示，也就是弹出来
+
+    for (const todo of dueTodos) {
+        todo.reminded = true; //标记这些任务已经提醒过
+    }
+
+    saveTodos();
+    render();
+}
+
 function render() {
     if (currentView === "all") {
         renderAllTodos();
@@ -230,17 +289,22 @@ function addTodo() {
         title,
         done:false,
         dueDate: dueDate || "",
+        remindAt: getDefaultRemindAt(dueDate || ""),
+        reminded: false,
     });
 
     input.value = "";
     dueDateInput.value = "";
     saveTodos();
     render();
+    checkReminders();
 }
 
 //下面开始类似于main函数的逻辑
 //点击添加
 addBtn.addEventListener("click", addTodo);
+
+reminderCloseBtn.addEventListener("click", hideReminderModal);
 
 input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") addTodo();
@@ -265,3 +329,17 @@ dateViewBtn.addEventListener("click", () => {
 });
 //首次渲染
 render();
+
+// 页面启动后先检查一次
+checkReminders();
+//showReminderModal([{ title: "test task", dueDate: "2026-03-16" }]);
+
+// 每分钟检查一次
+setInterval(checkReminders, 1000);
+
+// 页面从后台切回前台时再检查一次
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        checkReminders();
+    }
+});
