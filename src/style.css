@@ -172,3 +172,41 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+.notify-bar {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #555;
+  font-size: 14px;
+}
+
+.notify-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notify-status {
+  color: #777;
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 320px;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+.toast.hidden {
+  display: none;
+}

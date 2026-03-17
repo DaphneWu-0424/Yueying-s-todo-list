@@ -25,6 +25,20 @@
                 <button id="dateViewBtn" class="btn ghost">by date</button>
             </div>
 
+            <div class="notify-bar">
+                <!-- 此界面用于开启通知 -->
+                <label class="notify-option">
+                    <input id="enableBrowserNotify" type="checkbox" />
+                    <span>open browser notice</span>
+                </label>
+
+                <button id="requestNotifyPermissionBtn" class="btn ghost" type="button">
+                    Apply for notification permission
+                </button>
+
+                <span id="notifyStatusText" class="notify-status">The notification permission was not checked.</span>
+            </div>
+
             <div class="meta">
                 <span id="countText">
                     <!-- span可以理解为是行内文本容器,div是块级容器 -->
@@ -41,6 +55,7 @@
         </div>
 
         <div id="reminderModal" class="modal hidden">
+            <!-- 外层div是模态框容器，初始状态位hidden类，内部modal-panel是弹窗主体 -->
             <div class="modal-panel">
                 <h2>Reminder!</h2>
                 <ul id="reminderList" class="reminder-list"></ul>
@@ -49,6 +64,9 @@
                 </div>
             </div>
         </div>
+
+        <div id="toast" class="toast hidden"></div>
+        <!-- 定义一个轻量级的临时通知，toast提示 -->
 
         <script type="module" src="/src/main.js"></script>
     </body>
