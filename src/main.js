@@ -13,8 +13,15 @@ const dateViewBtn = document.querySelector("#dateViewBtn")
 const reminderModal = document.querySelector("#reminderModal");
 const reminderList = document.querySelector("#reminderList");
 const reminderCloseBtn = document.querySelector("#reminderCloseBtn");
+const enableBrowserNotify = document.querySelector("#enableBrowserNotify");
+const requestNotifyPermissionBtn = document.querySelector("#requestNotifyPermissionBtn");
+const notifyStatusText = document.querySelector("#notifyStatusText");
+const toast = document.querySelector("#toast");
+
+
 
 let todos = loadTodos();
+let settings = loadSettings();
 let currentView = "all";
 
 function saveTodos() {
@@ -35,6 +42,74 @@ function loadTodos() {
     }
 }
 
+
+const SETTINGS_KEY = "todo_settings";
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        return raw
+            ? JSON.parse(raw)
+            : {
+                browserNotifyEnabled: false,
+            };
+    } catch {
+        return {
+            browserNotifyEnabled: false,
+        };
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+let toastTimer = null;
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+
+    if (toastTimer) {
+        clearTimeout(toastTimer);
+    }
+
+    toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 2500);
+}
+
+
+function isNotificationSupported() {
+    return "Notification" in window;
+}
+
+function getNotificationPermission() {
+    if (!isNotificationSupported()) return "unsupported";
+    return Notification.permission;
+}
+
+function updateNotificationStatusText() {
+    const permission = getNotificationPermission();
+
+    if (permission === "unsupported") {
+        notifyStatusText.textContent = "Current browser doesn't support notification.";
+        return;
+    }
+
+    if (permission === "granted") {
+        notifyStatusText.textContent = "Notification Permission: granted";
+        return;
+    }
+
+    if (permission === "denied") {
+        notifyStatusText.textContent = "Notification Permission: rejected";
+        return;
+    }
+
+    notifyStatusText.textContent = "Notification Permission: no apply";
+}
+
 function getDefaultRemindAt(dueDate) {
     if (!dueDate) return 0;
 
@@ -46,6 +121,61 @@ function getDefaultRemindAt(dueDate) {
 
     return Date.now() + 5000;
 }
+
+
+async function requestNotificationPermission() {
+    if (!isNotificationSupported()) {
+        showToast("当前浏览器不支持通知");
+        updateNotificationStatusText();
+        return;
+    }
+
+    try {
+        const permission = await Notification.requestPermission();
+
+        updateNotificationStatusText();
+
+        if (permission === "granted") {
+            showToast("已开启浏览器通知");
+        } else if (permission === "denied") {
+            showToast("你已拒绝浏览器通知");
+        } else {
+            showToast("你暂未授予通知权限");
+        }
+    } catch {
+        showToast("申请通知权限失败");
+    }
+}
+
+
+
+function sendBrowserNotification(reminderTodos) {
+    if (!settings.browserNotifyEnabled) return;
+    if (!isNotificationSupported()) return;
+    if (Notification.permission !== "granted") return;
+    if (!reminderTodos.length) return;
+
+    const title =
+        reminderTodos.length === 1
+            ? "Todo notification next day"
+            : `You have ${reminderTodos.length} todo notification`;
+
+    const body = reminderTodos
+        .slice(0, 3)
+        .map((todo) => `${todo.title}(DDL: ${todo.dueDate || "无"})`)
+        .join(":");
+
+    new Notification(title, {
+        body,
+    });
+}
+
+
+function syncSettingsUI() {
+    enableBrowserNotify.checked = !!settings.browserNotifyEnabled;
+    updateNotificationStatusText();
+}
+
 
 
 function isReminderDue(todo) {
@@ -260,6 +390,7 @@ function checkReminders() {
     if (dueTodos.length === 0) return;
 
     showReminderModal(dueTodos); //将这些任务从hidden变为显示，也就是弹出来
+    sendBrowserNotification(dueTodos);
 
     for (const todo of dueTodos) {
         todo.reminded = true; //标记这些任务已经提醒过
@@ -327,6 +458,49 @@ dateViewBtn.addEventListener("click", () => {
     currentView = "date";
     render();
 });
+
+requestNotifyPermissionBtn.addEventListener("click", requestNotificationPermission);
+
+enableBrowserNotify.addEventListener("change", async () => {
+    settings.browserNotifyEnabled = enableBrowserNotify.checked;
+    saveSettings();
+
+    if (!settings.browserNotifyEnabled) {
+        showToast("已关闭浏览器通知");
+        updateNotificationStatusText();
+        return;
+    }
+
+    if (!isNotificationSupported()) {
+        showToast("当前浏览器不支持通知");
+        settings.browserNotifyEnabled = false;
+        enableBrowserNotify.checked = false;
+        saveSettings();
+        updateNotificationStatusText();
+        return;
+    }
+
+    if (Notification.permission === "default") {
+        await requestNotificationPermission();
+
+        if (Notification.permission !== "granted") {
+            settings.browserNotifyEnabled = false;
+            enableBrowserNotify.checked = false;
+            saveSettings();
+        }
+    } else if (Notification.permission === "denied") {
+        showToast("浏览器通知权限被拒绝，请先在浏览器设置中开启");
+        settings.browserNotifyEnabled = false;
+        enableBrowserNotify.checked = false;
+        saveSettings();
+    } else {
+        showToast("浏览器通知已开启");
+    }
+
+    updateNotificationStatusText();
+});
+
+syncSettingsUI();
 //首次渲染
 render();
 
